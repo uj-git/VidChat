@@ -16,6 +16,10 @@ import com.umang.chatapp.data.CHATS
 import com.umang.chatapp.data.ChatData
 import com.umang.chatapp.data.ChatUser
 import com.umang.chatapp.data.Event
+import com.umang.chatapp.data.GROUP_CHATS
+import com.umang.chatapp.data.GROUP_MESSAGE
+import com.umang.chatapp.data.GroupChatData
+import com.umang.chatapp.data.GroupMessage
 import com.umang.chatapp.data.MESSAGE
 import com.umang.chatapp.data.Message
 import com.umang.chatapp.data.STATUS
@@ -45,6 +49,10 @@ class LCViewModel @Inject constructor(
     var currentChatMessageListener : ListenerRegistration?=null
     val status = mutableStateOf<List<Status>>(listOf())
     var inProgressStatus = mutableStateOf(false)
+    var groupChats = mutableStateOf<List<GroupChatData>>(listOf())
+    val groupChatMessages = mutableStateOf<List<GroupMessage>>(listOf())
+    val inProgressGroupChatMessage = mutableStateOf(false)
+    var currentGroupChatMessageListener: ListenerRegistration? = null
 
     init {
 
@@ -214,57 +222,6 @@ class LCViewModel @Inject constructor(
         }
     }
 
-    fun handleException(e: Exception? = null, customMessage: String? = null) {
-        Log.e("ChatApp", "ChatApp Excetion: ", e)
-
-        e?.printStackTrace()
-
-        val errorMessage = e?.localizedMessage ?: ""
-
-        val message = if (customMessage.isNullOrEmpty()) errorMessage else customMessage
-
-        eventMutableState.value = Event(message)
-        inProgress.value = false
-    }
-
-    fun uploadProfileImage(uri: Uri) {
-        uploadImage(uri) {
-            createOrUpdateProfile(imageUrl = it.toString())
-        }
-    }
-
-    fun uploadImage(uri: Uri, onSuccess: (Uri) -> Unit) {
-        inProgress.value = true
-
-        val storageRef = storage.reference
-
-        val uuid = UUID.randomUUID()
-
-        val imageRef = storageRef.child("images/$uuid")
-
-        val uploadTask = imageRef.putFile(uri)
-
-        uploadTask.addOnSuccessListener {
-            val result = it.metadata?.reference?.downloadUrl
-
-            result?.addOnSuccessListener(onSuccess)
-            inProgress.value = false
-
-        }.addOnFailureListener {
-            handleException(it)
-        }
-    }
-
-    fun logOut() {
-        auth.signOut()
-        signIn.value = false
-        userData.value = null
-        depopulateMessages()
-        currentChatMessageListener = null
-        eventMutableState.value = Event("Logged Out")
-
-    }
-
     fun onAddChat(number: String) {
 
         if(number.isEmpty() or !number.isDigitsOnly()){
@@ -333,20 +290,133 @@ class LCViewModel @Inject constructor(
                 }
 
                 if(value != null){
-                   chatMessages.value = value.documents.mapNotNull {
-                       it.toObject<Message>()
-                   }.sortedBy { it.timeStamp }
+                    chatMessages.value = value.documents.mapNotNull {
+                        it.toObject<Message>()
+                    }.sortedBy { it.timeStamp }
 
                     inProgressChatMessage.value = false
                 }
 
-        }
+            }
     }
 
     fun depopulateMessages(){
         chatMessages.value = listOf()
         currentChatMessageListener = null
     }
+
+
+
+    fun createOrUpdateGroupChat(chatName: String, members: List<ChatUser>) {
+        val id = db.collection(GROUP_CHATS).document().id
+        val groupChat = GroupChatData(
+            groupId = id,
+            groupName = chatName,
+            members = members
+        )
+
+        db.collection(GROUP_CHATS).document(id).set(groupChat)
+    }
+
+    fun onAddGroupChat(chatName: String, memberNumbers: List<String>) {
+        val userId = userData.value?.userId
+
+        if (userId != null) {
+            val memberList = mutableListOf<ChatUser>()
+
+            memberNumbers.forEach { number ->
+                db.collection(USER_NODE).whereEqualTo("number", number).get().addOnSuccessListener { querySnapshot ->
+                    if (!querySnapshot.isEmpty) {
+                        val userData = querySnapshot.documents[0].toObject<UserData>()
+                        userData?.let {
+                            val member = ChatUser(
+                                userId = it.userId,
+                                name = it.name,
+                                imageUrl = it.imageUrl,
+                                number = it.number
+                            )
+                            memberList.add(member)
+                        }
+
+                        if (memberList.size == memberNumbers.size) {
+                            createOrUpdateGroupChat(chatName, memberList)
+                        }
+                    }
+                }.addOnFailureListener { exception ->
+                    handleException(exception, "Error finding user with number: $number")
+                }
+            }
+        }
+    }
+
+    fun onSendGroupMessage(groupId: String, message: String) {
+        val time = Calendar.getInstance().time.toString()
+        val groupMessage = GroupMessage(userData.value?.userId, message, time)
+        db.collection(GROUP_CHATS).document(groupId).collection(GROUP_MESSAGE).document().set(groupMessage)
+    }
+
+    fun populateGroupChats(groupId : String) {
+        inProgressGroupChatMessage.value = true
+        currentGroupChatMessageListener = db.collection(GROUP_CHATS).document(groupId).collection(GROUP_MESSAGE)
+            .addSnapshotListener { value, error ->
+                if (error != null) {
+                    handleException(error)
+                }
+
+                if (value != null) {
+                    groupChatMessages.value = value.documents.mapNotNull {
+                        it.toObject<GroupMessage>()
+                    }.sortedBy { it.timeStamp }
+
+                    inProgressGroupChatMessage.value = false
+                }
+            }
+    }
+
+    fun depopulateGroupChats() {
+        groupChatMessages.value = listOf()
+        currentGroupChatMessageListener = null
+    }
+
+    fun uploadProfileImage(uri: Uri) {
+        uploadImage(uri) {
+            createOrUpdateProfile(imageUrl = it.toString())
+        }
+    }
+
+    fun uploadImage(uri: Uri, onSuccess: (Uri) -> Unit) {
+        inProgress.value = true
+
+        val storageRef = storage.reference
+
+        val uuid = UUID.randomUUID()
+
+        val imageRef = storageRef.child("images/$uuid")
+
+        val uploadTask = imageRef.putFile(uri)
+
+        uploadTask.addOnSuccessListener {
+            val result = it.metadata?.reference?.downloadUrl
+
+            result?.addOnSuccessListener(onSuccess)
+            inProgress.value = false
+
+        }.addOnFailureListener {
+            handleException(it)
+        }
+    }
+
+    fun logOut() {
+        auth.signOut()
+        signIn.value = false
+        userData.value = null
+        depopulateMessages()
+        currentChatMessageListener = null
+        eventMutableState.value = Event("Logged Out")
+
+    }
+
+
 
     fun uploadStatus(uri: Uri) {
         uploadImage(uri){
@@ -379,7 +449,7 @@ class LCViewModel @Inject constructor(
                 Filter.equalTo("user2.userId",userData.value?.userId)
             )
         ).addSnapshotListener{
-            value , error ->
+                value , error ->
 
             if(error != null){
                 handleException(error)
@@ -389,7 +459,7 @@ class LCViewModel @Inject constructor(
                 val currentConnections = arrayListOf(userData.value?.userId)
                 val chats = value.toObjects<ChatData>()
                 chats.forEach{
-                    chat ->
+                        chat ->
                     if(chat.user1.userId == userData.value?.userId){
                         currentConnections.add(chat.user2.userId)
                     }else{
@@ -398,7 +468,7 @@ class LCViewModel @Inject constructor(
                 }
 
                 db.collection(STATUS).whereGreaterThan("timestamp",cutOff).whereIn("user.userId",currentConnections).addSnapshotListener{
-                    value, error ->
+                        value, error ->
                     if(error != null){
                         handleException(error)
                     }
@@ -411,4 +481,18 @@ class LCViewModel @Inject constructor(
             }
         }
     }
+
+    fun handleException(e: Exception? = null, customMessage: String? = null) {
+        Log.e("ChatApp", "ChatApp Excetion: ", e)
+
+        e?.printStackTrace()
+
+        val errorMessage = e?.localizedMessage ?: ""
+
+        val message = if (customMessage.isNullOrEmpty()) errorMessage else customMessage
+
+        eventMutableState.value = Event(message)
+        inProgress.value = false
+    }
+
 }

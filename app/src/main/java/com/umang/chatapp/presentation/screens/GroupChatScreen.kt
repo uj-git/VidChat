@@ -13,16 +13,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,73 +26,75 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.umang.chatapp.CommonDivider
-import com.umang.chatapp.CommonImage
 import com.umang.chatapp.LCViewModel
 import com.umang.chatapp.R
-import com.umang.chatapp.data.Message
+import com.umang.chatapp.data.GroupMessage
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import com.umang.chatapp.CommonImage
 
 @Composable
-fun SingleChatScreen(
+fun GroupChatScreen(
     viewModel: LCViewModel,
     navController: NavController,
-    chatId : String
+    groupId: String
 ) {
     var reply by rememberSaveable {
         mutableStateOf("")
     }
 
     val onSendReply = {
-        viewModel.onSendReply(chatId, reply)
+        viewModel.onSendGroupMessage(groupId, reply)
         reply = ""
     }
 
     var myUser = viewModel.userData.value
-    var currentChat = viewModel.chats.value.first{it.chatId == chatId}
-    var chatUser = if(myUser?.userId == currentChat.user1.userId) currentChat.user2 else currentChat.user1
+    var currentGroup = viewModel.groupChats.value.first { it.groupId == groupId }
 
-    LaunchedEffect(key1 = Unit){
-        viewModel.populateMessages(chatId)
+    LaunchedEffect(key1 = Unit) {
+        viewModel.populateGroupChats(groupId)
     }
 
     BackHandler {
-        viewModel.depopulateMessages()
+        viewModel.depopulateGroupChats()
     }
 
     Column {
-        ChatHeader(
-            name = chatUser.name ?: "",
-            imageUrl = chatUser.imageUrl ?: "",
+        GroupChatHeader(
+            groupName = currentGroup.groupName ?: "",
             onBackClicked = {
                 navController.popBackStack()
                 viewModel.depopulateMessages()
             },
             onVideoCallClicked = {
-                // Handle video call action
+                // Handle group video call action
             },
             onAudioCallClicked = {
-                // Handle audio call action
+                // Handle group audio call action
             }
         )
 
+        GroupMessageBox(
+            modifier = Modifier.weight(1f),
+            groupMessages = viewModel.groupChatMessages.value,
+            currentUserId = myUser?.userId ?: "",
+            userProfileImageUrl = myUser?.imageUrl ?: ""
+        )
 
-        MessageBox(modifier = Modifier.weight(1f), chatMessages = viewModel.chatMessages.value, currentUserId = myUser?.userId?:"", userProfileImageUrl = chatUser.imageUrl ?: "")
-        ReplyBox(reply = reply, onReplyChange = {reply = it}, onSendReply = onSendReply)
+        ReplyBox(reply = reply, onReplyChange = { reply = it }, onSendReply = onSendReply)
     }
-
-
 }
 
 @Composable
-fun ChatHeader(
-    name: String,
-    imageUrl: String,
+fun GroupChatHeader(
+    groupName: String,
     onBackClicked: () -> Unit,
     onVideoCallClicked: () -> Unit,
     onAudioCallClicked: () -> Unit
@@ -118,16 +115,8 @@ fun ChatHeader(
                 .padding(8.dp)
         )
 
-        CommonImage(
-            data = imageUrl,
-            modifier = Modifier
-                .padding(8.dp)
-                .size(50.dp)
-                .clip(CircleShape)
-        )
-
         Text(
-            text = name,
+            text = groupName,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(start = 4.dp)
         )
@@ -140,8 +129,8 @@ fun ChatHeader(
             horizontalArrangement = Arrangement.End
         ) {
             Icon(
-                painter =  painterResource(id = R.drawable.videoicon),
-                contentDescription = "Video Call",
+                painter = painterResource(id = R.drawable.videoicon),
+                contentDescription = "Group Video Call",
                 modifier = Modifier
                     .clickable {
                         onVideoCallClicked.invoke()
@@ -151,7 +140,7 @@ fun ChatHeader(
 
             Icon(
                 imageVector = Icons.Default.Phone,
-                contentDescription = "Audio Call",
+                contentDescription = "Group Audio Call",
                 modifier = Modifier
                     .clickable {
                         onAudioCallClicked.invoke()
@@ -162,18 +151,17 @@ fun ChatHeader(
     }
 }
 
-
 @Composable
-fun MessageBox(
+fun GroupMessageBox(
     modifier: Modifier,
-    chatMessages: List<Message>,
+    groupMessages: List<GroupMessage>,
     currentUserId: String,
     userProfileImageUrl: String
 ) {
     LazyColumn(modifier = modifier) {
-        items(chatMessages) { msg ->
-            val alignment = if (msg.sendBy == currentUserId) Alignment.End else Alignment.Start
-            val color = if (msg.sendBy == currentUserId) Color(0xFFDAD6C4) else Color(0xFFC4C43B)
+        items(groupMessages) { msg ->
+            val alignment = if (msg.senderId == currentUserId) Alignment.End else Alignment.Start
+            val color = if (msg.senderId == currentUserId) Color(0xFFDAD6C4) else Color(0xFFC4C43B)
 
             Row(
                 modifier = Modifier
@@ -210,35 +198,4 @@ fun MessageBox(
             }
         }
     }
-}
-
-@Composable
-fun ReplyBox(reply : String, onReplyChange: (String) -> Unit, onSendReply: () -> Unit){
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-    ) {
-
-        CommonDivider()
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            
-            TextField(
-                value = reply,
-                onValueChange = onReplyChange,
-                maxLines = 3
-            )
-
-            Button(onClick = onSendReply) {
-                Text(text = "Send")
-            }
-            
-        }
-    }
-
 }

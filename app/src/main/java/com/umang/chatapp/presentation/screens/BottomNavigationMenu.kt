@@ -2,6 +2,7 @@ package com.umang.chatapp.presentation.screens
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -10,6 +11,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -32,7 +34,7 @@ fun BottomNavigationMenu(
             .fillMaxWidth()
             .wrapContentHeight()
             .navigationBarsPadding(),
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = Color(0xFFDAD6C4),
         contentColor = MaterialTheme.colorScheme.onSurface,
         tonalElevation = 10.dp
     ) {
@@ -47,16 +49,27 @@ fun BottomNavigationMenu(
                 icon = {
                     Icon(
                         painter = painterResource(id = item.icon),
+                        modifier = Modifier.size(24.dp),
                         contentDescription = item.navDestination.route,
                         tint = if (selectedItem == item) {
-                            MaterialTheme.colorScheme.primary
+                            Color(0xFFC4C43B)
                         } else {
                             MaterialTheme.colorScheme.onSurfaceVariant
                         }
                     )
                 },
-                label = { Text(item.navDestination.route) }
+                label = {
+                    Text(
+                        item.navDestination.route,
+                        color = if (selectedItem == item) {
+                            Color(0xFFC4C43B)
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        }
+                    )
+                }
             )
         }
     }
 }
+
