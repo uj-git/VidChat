@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "718875713735",
+    "project_id": "chat-app-89cc5",
+    "storage_bucket": "chat-app-89cc5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:718875713735:android:ad877c0e54714c44bcdee2",
+        "android_client_info": {
+          "package_name": "com.umang.chatapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUCn-dziVHGXApvm4hwv56slcXYL06Tgg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
