@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -29,7 +30,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -37,17 +37,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.umang.chatapp.ChatCard
 import com.umang.chatapp.CommonProgressBar
 import com.umang.chatapp.LCViewModel
 import com.umang.chatapp.R
-import com.umang.chatapp.TitleText
 import com.umang.chatapp.navigateTo
 import com.umang.chatapp.presentation.navgraph.DestinationScreen
 
@@ -82,10 +83,15 @@ fun ChatListScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
+                    modifier = Modifier.shadow(25.dp),
+                    colors = TopAppBarDefaults
+                        .topAppBarColors(containerColor = Color(0xE6D1C021)),
                     title = {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start
+                            horizontalArrangement = Arrangement.Start,
+
+
                         ) {
                             Image(
                                 painter = painterResource(id = R.drawable.chaticon), // Replace with your chat logo resource ID
@@ -93,7 +99,6 @@ fun ChatListScreen(
                                 modifier = Modifier
                                     .size(50.dp)
                                     .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.primary)
                             )
 
                             Spacer(modifier = Modifier.width(8.dp))
@@ -116,8 +121,7 @@ fun ChatListScreen(
                                 tint = MaterialTheme.colorScheme.onPrimary
                             )
                         }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(MaterialTheme.colorScheme.primary)
+                    }
                 )
             },
             floatingActionButton = {
@@ -132,9 +136,14 @@ fun ChatListScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(it)
+                        .padding(it).navigationBarsPadding().background(Color(0xFFCCCCC2))
                 ) {
-                    TitleText(text = "Chats")
+                    Text(
+                        text = "Chats",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 25.sp,
+                        modifier = Modifier.padding(8.dp)
+                    )
 
                     if (chats.isEmpty()) {
                         Column(
@@ -225,10 +234,10 @@ fun FAB(
     }
     FloatingActionButton(
         onClick = { onFabClick() },
-        containerColor = MaterialTheme.colorScheme.secondary,
-        shape = CircleShape,
         modifier = Modifier
-            .padding(bottom = 40.dp)
+            .padding(bottom = 40.dp),
+        shape = CircleShape
+
     ) {
         Icon(
             imageVector = Icons.Rounded.Add,

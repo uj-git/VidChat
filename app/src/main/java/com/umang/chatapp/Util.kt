@@ -165,7 +165,7 @@ fun ChatCard(
 ) {
     Card(
         modifier = Modifier
-            .padding(16.dp)
+            .padding(5.dp)
             .clickable(onClick = {onClick.invoke()})
             .fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -177,7 +177,7 @@ fun ChatCard(
     ) {
         Row(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(10.dp)
                 .fillMaxWidth()
         ) {
             Image(

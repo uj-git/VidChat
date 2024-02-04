@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -41,13 +42,15 @@ import com.umang.chatapp.CommonDivider
 import com.umang.chatapp.CommonImage
 import com.umang.chatapp.LCViewModel
 import com.umang.chatapp.R
+import com.umang.chatapp.data.ChatUser
 import com.umang.chatapp.data.Message
+import com.umang.chatapp.data.UserData
 
 @Composable
 fun SingleChatScreen(
     viewModel: LCViewModel,
     navController: NavController,
-    chatId : String
+    chatId: String
 ) {
     var reply by rememberSaveable {
         mutableStateOf("")
@@ -59,10 +62,11 @@ fun SingleChatScreen(
     }
 
     var myUser = viewModel.userData.value
-    var currentChat = viewModel.chats.value.first{it.chatId == chatId}
-    var chatUser = if(myUser?.userId == currentChat.user1.userId) currentChat.user2 else currentChat.user1
+    var currentChat = viewModel.chats.value.first { it.chatId == chatId }
+    var chatUser =
+        if (myUser?.userId == currentChat.user1.userId) currentChat.user2 else currentChat.user1
 
-    LaunchedEffect(key1 = Unit){
+    LaunchedEffect(key1 = Unit) {
         viewModel.populateMessages(chatId)
     }
 
@@ -87,8 +91,13 @@ fun SingleChatScreen(
         )
 
 
-        MessageBox(modifier = Modifier.weight(1f), chatMessages = viewModel.chatMessages.value, currentUserId = myUser?.userId?:"", userProfileImageUrl = chatUser.imageUrl ?: "")
-        ReplyBox(reply = reply, onReplyChange = {reply = it}, onSendReply = onSendReply)
+        MessageBox(
+            modifier = Modifier.weight(1f),
+            chatMessages = viewModel.chatMessages.value,
+            currentUser = myUser!!,
+            chatUser = chatUser,
+        )
+        ReplyBox(reply = reply, onReplyChange = { reply = it }, onSendReply = onSendReply)
     }
 
 
@@ -105,7 +114,8 @@ fun ChatHeader(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .wrapContentHeight(),
+            .wrapContentHeight()
+            .background(Color(0xE6D1C021)),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -116,6 +126,7 @@ fun ChatHeader(
                     onBackClicked.invoke()
                 }
                 .padding(8.dp)
+                .size(25.dp)
         )
 
         CommonImage(
@@ -140,13 +151,14 @@ fun ChatHeader(
             horizontalArrangement = Arrangement.End
         ) {
             Icon(
-                painter =  painterResource(id = R.drawable.videoicon),
+                painter = painterResource(id = R.drawable.videoicon),
                 contentDescription = "Video Call",
                 modifier = Modifier
                     .clickable {
                         onVideoCallClicked.invoke()
                     }
                     .padding(8.dp)
+                    .size(30.dp)
             )
 
             Icon(
@@ -167,23 +179,28 @@ fun ChatHeader(
 fun MessageBox(
     modifier: Modifier,
     chatMessages: List<Message>,
-    currentUserId: String,
-    userProfileImageUrl: String
+    currentUser: UserData,
+    chatUser: ChatUser,
 ) {
     LazyColumn(modifier = modifier) {
         items(chatMessages) { msg ->
-            val alignment = if (msg.sendBy == currentUserId) Alignment.End else Alignment.Start
-            val color = if (msg.sendBy == currentUserId) Color(0xFFDAD6C4) else Color(0xFFC4C43B)
+            val alignment = if (msg.sendBy == currentUser.userId) Alignment.End else Alignment.Start
+            val color =
+                if (msg.sendBy == currentUser.userId) Color(0xFFDAD6C4) else Color(0xFFC4C43B)
+            var image =
+                if (msg.sendBy == currentUser.userId) currentUser.imageUrl else chatUser.imageUrl
 
-            Row(
+
+
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
+                horizontalAlignment = alignment
             ) {
+
                 CommonImage(
-                    data = userProfileImageUrl,
+                    data = image,
                     modifier = Modifier
                         .size(30.dp)
                         .clip(CircleShape)
@@ -191,29 +208,23 @@ fun MessageBox(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                Column(
+                Text(
+                    text = msg.message ?: "",
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    horizontalAlignment = alignment
-                ) {
-                    Text(
-                        text = msg.message ?: "",
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(color)
-                            .padding(12.dp),
-                        color = Color.Black,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(color)
+                        .padding(12.dp),
+                    color = Color.Black,
+                    fontWeight = FontWeight.Bold
+                )
+
             }
         }
     }
 }
 
 @Composable
-fun ReplyBox(reply : String, onReplyChange: (String) -> Unit, onSendReply: () -> Unit){
+fun ReplyBox(reply: String, onReplyChange: (String) -> Unit, onSendReply: () -> Unit) {
 
     Column(
         modifier = Modifier
@@ -227,17 +238,17 @@ fun ReplyBox(reply : String, onReplyChange: (String) -> Unit, onSendReply: () ->
                 .padding(8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            
+
             TextField(
                 value = reply,
                 onValueChange = onReplyChange,
                 maxLines = 3
             )
 
-            Button(onClick = onSendReply) {
+            Button(onClick = onSendReply, colors = ButtonDefaults.buttonColors(Color(0xE6A3A297))) {
                 Text(text = "Send")
             }
-            
+
         }
     }
 

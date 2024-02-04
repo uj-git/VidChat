@@ -34,7 +34,7 @@ fun BottomNavigationMenu(
             .fillMaxWidth()
             .wrapContentHeight()
             .navigationBarsPadding(),
-        containerColor = Color(0xFFDAD6C4),
+        containerColor = Color(0xFF000000),
         contentColor = MaterialTheme.colorScheme.onSurface,
         tonalElevation = 10.dp
     ) {
@@ -52,19 +52,19 @@ fun BottomNavigationMenu(
                         modifier = Modifier.size(24.dp),
                         contentDescription = item.navDestination.route,
                         tint = if (selectedItem == item) {
-                            Color(0xFFC4C43B)
+                            Color(0xFFD8D801)
                         } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
+                            Color.White
                         }
                     )
                 },
                 label = {
                     Text(
-                        item.navDestination.route,
+                        item.name,
                         color = if (selectedItem == item) {
-                            Color(0xFFC4C43B)
+                            Color(0xFFD8D801)
                         } else {
-                            MaterialTheme.colorScheme.onSurface
+                            Color.White
                         }
                     )
                 }

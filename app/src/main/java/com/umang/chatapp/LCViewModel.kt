@@ -27,6 +27,7 @@ import com.umang.chatapp.data.Status
 import com.umang.chatapp.data.USER_NODE
 import com.umang.chatapp.data.UserData
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.agora.rtc2.RtcEngine
 import java.util.Calendar
 import java.util.UUID
 import javax.inject.Inject
@@ -35,7 +36,8 @@ import javax.inject.Inject
 class LCViewModel @Inject constructor(
     val auth: FirebaseAuth,
     var db: FirebaseFirestore,
-    val storage: FirebaseStorage
+    val storage: FirebaseStorage,
+    //private val rtcEngine: RtcEngine
 ) : ViewModel() {
 
     var inProgress = mutableStateOf(false)
@@ -305,8 +307,6 @@ class LCViewModel @Inject constructor(
         currentChatMessageListener = null
     }
 
-
-
     fun createOrUpdateGroupChat(chatName: String, members: List<ChatUser>) {
         val id = db.collection(GROUP_CHATS).document().id
         val groupChat = GroupChatData(
@@ -415,8 +415,6 @@ class LCViewModel @Inject constructor(
         eventMutableState.value = Event("Logged Out")
 
     }
-
-
 
     fun uploadStatus(uri: Uri) {
         uploadImage(uri){

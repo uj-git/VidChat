@@ -87,4 +87,7 @@ dependencies {
 
     //Coil
     implementation("io.coil-kt:coil-compose:2.5.0")
+
+    //Agora
+    implementation("io.agora.rtc:full-sdk:4.2.6")
 }
