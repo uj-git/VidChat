@@ -1,7 +1,9 @@
 package com.umang.chatapp
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -107,7 +109,12 @@ fun CommonImage(
 
     Image(
         painter = painter, contentDescription = null,
-        modifier = modifier.wrapContentSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .clip(CircleShape).border(
+                BorderStroke(2.dp, Color.Gray),
+                shape = CircleShape
+            ),
         contentScale = contentScale
     )
 }
@@ -125,34 +132,38 @@ fun TitleText(text: String) {
 @Composable
 fun CommonRow(
     imageUrl: String?,
-    name: String?,
-    onItemClick: () -> Unit
+    name: String?
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(75.dp)
-            .clickable {
-                onItemClick.invoke()
-            },
+            .padding(10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        CommonImage(
-            data = imageUrl,
+        Image(
+            painter = rememberAsyncImagePainter(
+                ImageRequest.Builder(LocalContext.current).data(data = imageUrl)
+                    .apply(block = fun ImageRequest.Builder.() {
+                        transformations(CircleCropTransformation())
+                    }).build()
+            ),
+            contentDescription = null,
             modifier = Modifier
-                .padding(8.dp)
+                .clip(RoundedCornerShape(10.dp))
                 .size(50.dp)
-                .clip(CircleShape)
-                .background(
-                    Color.Red
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(
+            modifier = Modifier.align(Alignment.CenterVertically)
+        ) {
+            if (name != null) {
+                Text(
+                    text = name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
-        )
-
-        Text(
-            text = name ?: "",
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(start = 4.dp)
-        )
+            }
+        }
     }
 }
 
@@ -166,7 +177,7 @@ fun ChatCard(
     Card(
         modifier = Modifier
             .padding(5.dp)
-            .clickable(onClick = {onClick.invoke()})
+            .clickable(onClick = { onClick.invoke() })
             .fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
@@ -175,35 +186,6 @@ fun ChatCard(
         ),
         elevation = CardDefaults.cardElevation(8.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .padding(10.dp)
-                .fillMaxWidth()
-        ) {
-            Image(
-                painter = rememberAsyncImagePainter(
-                    ImageRequest.Builder(LocalContext.current).data(data = imageUrl)
-                        .apply(block = fun ImageRequest.Builder.() {
-                            transformations(CircleCropTransformation())
-                        }).build()
-                ),
-                contentDescription = "Chat user image",
-                modifier = Modifier
-                    .clip(RoundedCornerShape(10.dp))
-                    .size(50.dp)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(
-                modifier = Modifier.align(Alignment.CenterVertically)
-            ) {
-                if (name != null) {
-                    Text(
-                        text = name,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-        }
+        CommonRow(imageUrl = imageUrl, name = name)
     }
 }

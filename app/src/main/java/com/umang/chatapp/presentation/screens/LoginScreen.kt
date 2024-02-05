@@ -65,8 +65,8 @@ fun LoginScreen(
             .background(
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        Color(0xFF00B8D4), // Start color
-                        Color(0xFFE91E63)  // End color
+                        Color(0xFFDAD6C4), // Start color
+                        Color(0xFFC4C43B)  // End color
                     )
                 )
             )
