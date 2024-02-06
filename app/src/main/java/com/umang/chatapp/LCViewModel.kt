@@ -28,6 +28,10 @@ import com.umang.chatapp.data.USER_NODE
 import com.umang.chatapp.data.UserData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.agora.rtc2.RtcEngine
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Calendar
 import java.util.UUID
 import javax.inject.Inject
@@ -48,7 +52,7 @@ class LCViewModel @Inject constructor(
     var chats = mutableStateOf<List<ChatData>>(listOf())
     val chatMessages = mutableStateOf<List<Message>>(listOf())
     val inProgressChatMessage = mutableStateOf(false)
-    var currentChatMessageListener : ListenerRegistration?=null
+    var currentChatMessageListener: ListenerRegistration? = null
     val status = mutableStateOf<List<Status>>(listOf())
     var inProgressStatus = mutableStateOf(false)
     var groupChats = mutableStateOf<List<GroupChatData>>(listOf())
@@ -72,6 +76,7 @@ class LCViewModel @Inject constructor(
         email: String,
         password: String
     ) {
+
         inProgress.value = true
 
         if (name.isEmpty() or number.isEmpty() or email.isEmpty() or password.isEmpty()) {
@@ -106,6 +111,8 @@ class LCViewModel @Inject constructor(
                 inProgress.value = false
             }
         }
+
+
     }
 
     fun logIn(email: String, password: String) {
@@ -133,6 +140,7 @@ class LCViewModel @Inject constructor(
         number: String? = null,
         imageUrl: String? = null
     ) {
+
         var uid = auth.currentUser?.uid
 
         var userData = UserData(
@@ -182,6 +190,8 @@ class LCViewModel @Inject constructor(
                     handleException(it, "Cannot Retrieve User")
                 }
         }
+
+
     }
 
     private fun getUserData(uid: String) {
@@ -202,20 +212,19 @@ class LCViewModel @Inject constructor(
         }
     }
 
-    fun populateChats(){
+    fun populateChats() {
         inProcessChats.value = true
         db.collection(CHATS).where(
             Filter.or(
                 Filter.equalTo("user1.userId", userData.value?.userId),
                 Filter.equalTo("user2.userId", userData.value?.userId),
             )
-        ).addSnapshotListener{
-            value , error ->
-            if(error != null){
+        ).addSnapshotListener { value, error ->
+            if (error != null) {
                 handleException(error)
             }
 
-            if(value != null){
+            if (value != null) {
                 chats.value = value.documents.mapNotNull {
                     it.toObject<ChatData>()
                 }
@@ -226,48 +235,51 @@ class LCViewModel @Inject constructor(
 
     fun onAddChat(number: String) {
 
-        if(number.isEmpty() or !number.isDigitsOnly()){
+        if (number.isEmpty() or !number.isDigitsOnly()) {
             handleException(customMessage = "Number Must Contain Digits Only")
-        }else{
-            db.collection(CHATS).where(Filter.or(
-                Filter.and(
-                    Filter.equalTo("user1.number",number),
-                    Filter.equalTo("user2.number",userData.value?.number)
-                ),
-                Filter.and(
-                    Filter.equalTo("user1.number",userData.value?.number),
-                    Filter.equalTo("user2.number",number)
+        } else {
+            db.collection(CHATS).where(
+                Filter.or(
+                    Filter.and(
+                        Filter.equalTo("user1.number", number),
+                        Filter.equalTo("user2.number", userData.value?.number)
+                    ),
+                    Filter.and(
+                        Filter.equalTo("user1.number", userData.value?.number),
+                        Filter.equalTo("user2.number", number)
+                    )
                 )
-            )).get().addOnSuccessListener {
-                if(it.isEmpty){
-                    db.collection(USER_NODE).whereEqualTo("number",number).get().addOnSuccessListener{
-                        if(it.isEmpty){
-                            handleException(customMessage = "Number Not Found")
-                        }else{
-                            val chatPartner = it.toObjects<UserData>()[0]
-                            val id = db.collection(CHATS).document().id
-                            val chat = ChatData(
-                                chatId = id,
-                                ChatUser(
-                                    userData.value?.userId,
-                                    userData.value?.name,
-                                    userData.value?.imageUrl,
-                                    userData.value?.number
-                                ),
-                                ChatUser(
-                                    chatPartner.userId,
-                                    chatPartner.name,
-                                    chatPartner.imageUrl,
-                                    chatPartner.number
+            ).get().addOnSuccessListener {
+                if (it.isEmpty) {
+                    db.collection(USER_NODE).whereEqualTo("number", number).get()
+                        .addOnSuccessListener {
+                            if (it.isEmpty) {
+                                handleException(customMessage = "Number Not Found")
+                            } else {
+                                val chatPartner = it.toObjects<UserData>()[0]
+                                val id = db.collection(CHATS).document().id
+                                val chat = ChatData(
+                                    chatId = id,
+                                    ChatUser(
+                                        userData.value?.userId,
+                                        userData.value?.name,
+                                        userData.value?.imageUrl,
+                                        userData.value?.number
+                                    ),
+                                    ChatUser(
+                                        chatPartner.userId,
+                                        chatPartner.name,
+                                        chatPartner.imageUrl,
+                                        chatPartner.number
+                                    )
                                 )
-                            )
 
-                            db.collection(CHATS).document(id).set(chat)
-                        }
-                    }.addOnFailureListener{
+                                db.collection(CHATS).document(id).set(chat)
+                            }
+                        }.addOnFailureListener {
                         handleException(it)
                     }
-                }else{
+                } else {
                     handleException(customMessage = "Chat already exists")
                 }
             }
@@ -275,23 +287,23 @@ class LCViewModel @Inject constructor(
 
     }
 
-    fun onSendReply(chatId : String, message: String){
+    fun onSendReply(chatId: String, message: String) {
         val time = Calendar.getInstance().time.toString()
         val msg = Message(userData.value?.userId, message, time)
         db.collection(CHATS).document(chatId).collection(MESSAGE).document().set(msg)
 
     }
 
-    fun populateMessages(chatId: String){
+    fun populateMessages(chatId: String) {
         inProgressChatMessage.value = true
         currentChatMessageListener = db.collection(CHATS).document(chatId).collection(MESSAGE)
-            .addSnapshotListener{ value, error ->
+            .addSnapshotListener { value, error ->
 
-                if(error!=null){
+                if (error != null) {
                     handleException(error)
                 }
 
-                if(value != null){
+                if (value != null) {
                     chatMessages.value = value.documents.mapNotNull {
                         it.toObject<Message>()
                     }.sortedBy { it.timeStamp }
@@ -302,7 +314,7 @@ class LCViewModel @Inject constructor(
             }
     }
 
-    fun depopulateMessages(){
+    fun depopulateMessages() {
         chatMessages.value = listOf()
         currentChatMessageListener = null
     }
@@ -325,24 +337,25 @@ class LCViewModel @Inject constructor(
             val memberList = mutableListOf<ChatUser>()
 
             memberNumbers.forEach { number ->
-                db.collection(USER_NODE).whereEqualTo("number", number).get().addOnSuccessListener { querySnapshot ->
-                    if (!querySnapshot.isEmpty) {
-                        val userData = querySnapshot.documents[0].toObject<UserData>()
-                        userData?.let {
-                            val member = ChatUser(
-                                userId = it.userId,
-                                name = it.name,
-                                imageUrl = it.imageUrl,
-                                number = it.number
-                            )
-                            memberList.add(member)
-                        }
+                db.collection(USER_NODE).whereEqualTo("number", number).get()
+                    .addOnSuccessListener { querySnapshot ->
+                        if (!querySnapshot.isEmpty) {
+                            val userData = querySnapshot.documents[0].toObject<UserData>()
+                            userData?.let {
+                                val member = ChatUser(
+                                    userId = it.userId,
+                                    name = it.name,
+                                    imageUrl = it.imageUrl,
+                                    number = it.number
+                                )
+                                memberList.add(member)
+                            }
 
-                        if (memberList.size == memberNumbers.size) {
-                            createOrUpdateGroupChat(chatName, memberList)
+                            if (memberList.size == memberNumbers.size) {
+                                createOrUpdateGroupChat(chatName, memberList)
+                            }
                         }
-                    }
-                }.addOnFailureListener { exception ->
+                    }.addOnFailureListener { exception ->
                     handleException(exception, "Error finding user with number: $number")
                 }
             }
@@ -352,25 +365,27 @@ class LCViewModel @Inject constructor(
     fun onSendGroupMessage(groupId: String, message: String) {
         val time = Calendar.getInstance().time.toString()
         val groupMessage = GroupMessage(userData.value?.userId, message, time)
-        db.collection(GROUP_CHATS).document(groupId).collection(GROUP_MESSAGE).document().set(groupMessage)
+        db.collection(GROUP_CHATS).document(groupId).collection(GROUP_MESSAGE).document()
+            .set(groupMessage)
     }
 
-    fun populateGroupChats(groupId : String) {
+    fun populateGroupChats(groupId: String) {
         inProgressGroupChatMessage.value = true
-        currentGroupChatMessageListener = db.collection(GROUP_CHATS).document(groupId).collection(GROUP_MESSAGE)
-            .addSnapshotListener { value, error ->
-                if (error != null) {
-                    handleException(error)
-                }
+        currentGroupChatMessageListener =
+            db.collection(GROUP_CHATS).document(groupId).collection(GROUP_MESSAGE)
+                .addSnapshotListener { value, error ->
+                    if (error != null) {
+                        handleException(error)
+                    }
 
-                if (value != null) {
-                    groupChatMessages.value = value.documents.mapNotNull {
-                        it.toObject<GroupMessage>()
-                    }.sortedBy { it.timeStamp }
+                    if (value != null) {
+                        groupChatMessages.value = value.documents.mapNotNull {
+                            it.toObject<GroupMessage>()
+                        }.sortedBy { it.timeStamp }
 
-                    inProgressGroupChatMessage.value = false
+                        inProgressGroupChatMessage.value = false
+                    }
                 }
-            }
     }
 
     fun depopulateGroupChats() {
@@ -378,7 +393,7 @@ class LCViewModel @Inject constructor(
         currentGroupChatMessageListener = null
     }
 
-    fun uploadProfileImage(uri: Uri) {
+    suspend fun uploadProfileImage(uri: Uri) {
         uploadImage(uri) {
             createOrUpdateProfile(imageUrl = it.toString())
         }
@@ -417,12 +432,12 @@ class LCViewModel @Inject constructor(
     }
 
     fun uploadStatus(uri: Uri) {
-        uploadImage(uri){
+        uploadImage(uri) {
             createStatus(it.toString())
         }
     }
 
-    fun createStatus(imageUrl : String){
+    fun createStatus(imageUrl: String) {
         val newStauts = Status(
             ChatUser(
                 userData.value?.userId,
@@ -437,45 +452,44 @@ class LCViewModel @Inject constructor(
         db.collection(STATUS).document().set(newStauts)
     }
 
-    fun populateStatuses(){
-        val timeDelta = 24L *60 * 60 *100
+    fun populateStatuses() {
+        val timeDelta = 24L * 60 * 60 * 100
         val cutOff = System.currentTimeMillis() - timeDelta
-        inProgressStatus.value = true
+        //inProgressStatus.value = true
         db.collection(CHATS).where(
             Filter.or(
-                Filter.equalTo("user1.userId",userData.value?.userId),
-                Filter.equalTo("user2.userId",userData.value?.userId)
+                Filter.equalTo("user1.userId", userData.value?.userId),
+                Filter.equalTo("user2.userId", userData.value?.userId)
             )
-        ).addSnapshotListener{
-                value , error ->
+        ).addSnapshotListener { value, error ->
 
-            if(error != null){
+            if (error != null) {
                 handleException(error)
             }
 
-            if(value != null){
+            if (value != null) {
                 val currentConnections = arrayListOf(userData.value?.userId)
                 val chats = value.toObjects<ChatData>()
-                chats.forEach{
-                        chat ->
-                    if(chat.user1.userId == userData.value?.userId){
+                chats.forEach { chat ->
+                    if (chat.user1.userId == userData.value?.userId) {
                         currentConnections.add(chat.user2.userId)
-                    }else{
+                    } else {
                         currentConnections.add(chat.user1.userId)
                     }
                 }
 
-                db.collection(STATUS).whereGreaterThan("timestamp",cutOff).whereIn("user.userId",currentConnections).addSnapshotListener{
-                        value, error ->
-                    if(error != null){
-                        handleException(error)
-                    }
+                db.collection(STATUS).whereGreaterThan("timestamp", cutOff)
+                    .whereIn("user.userId", currentConnections)
+                    .addSnapshotListener { value, error ->
+                        if (error != null) {
+                            handleException(error)
+                        }
 
-                    if(value != null){
-                        status.value = value.toObjects()
-                        inProgressStatus.value = false
+                        if (value != null) {
+                            status.value = value.toObjects()
+                            inProgressStatus.value = false
+                        }
                     }
-                }
             }
         }
     }

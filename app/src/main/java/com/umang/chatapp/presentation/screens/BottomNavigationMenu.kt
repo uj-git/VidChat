@@ -1,13 +1,16 @@
 package com.umang.chatapp.presentation.screens
 
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -42,6 +45,7 @@ fun BottomNavigationMenu(
 
         for (item in navItems) {
             NavigationBarItem(
+                //modifier = Modifier.size(30.dp),
                 selected = selectedItem == item,
                 onClick = {
                     navController.navigate(item.navDestination.route)
@@ -49,7 +53,7 @@ fun BottomNavigationMenu(
                 icon = {
                     Icon(
                         painter = painterResource(id = item.icon),
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(25.dp),
                         contentDescription = item.navDestination.route,
                         tint = if (selectedItem == item) {
                             Color(0xFFD8D801)
@@ -67,7 +71,11 @@ fun BottomNavigationMenu(
                             Color.White
                         }
                     )
-                }
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    // Set indicator color to transparent to remove the circular shape
+                    indicatorColor = Color.Transparent
+                )
             )
         }
     }

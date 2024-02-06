@@ -80,7 +80,7 @@ fun ChatListScreen(
 //            viewModel.onAddGroupChat(it)
 //        }
 
-        Scaffold(
+        Scaffold(modifier = Modifier.navigationBarsPadding(),
             topBar = {
                 TopAppBar(
                     modifier = Modifier.shadow(25.dp),
