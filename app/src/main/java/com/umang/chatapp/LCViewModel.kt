@@ -27,11 +27,6 @@ import com.umang.chatapp.data.Status
 import com.umang.chatapp.data.USER_NODE
 import com.umang.chatapp.data.UserData
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.agora.rtc2.RtcEngine
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.Calendar
 import java.util.UUID
 import javax.inject.Inject
@@ -167,6 +162,7 @@ class LCViewModel @Inject constructor(
                             imageUrl = imageUrl ?: existingUserData.imageUrl
                         )
 
+
                         db.collection(USER_NODE).document(uid).update(updatedData.toMap())
                             .addOnSuccessListener {
                                 inProgress.value = false
@@ -175,6 +171,8 @@ class LCViewModel @Inject constructor(
                             .addOnFailureListener { exception ->
                                 handleException(exception, "Cannot Update User Data")
                             }
+
+                        updateProfileImageInChatNodes(updatedData.userId!!, updatedData.imageUrl)
                     }
 
                 } else {
@@ -192,6 +190,44 @@ class LCViewModel @Inject constructor(
         }
 
 
+    }
+
+    private fun updateProfileImageInChatNodes(userId: String, imageUrl: String?) {
+        // Query chat nodes where the user is involved
+        db.collection(CHATS).where(
+            Filter.or(
+                Filter.equalTo("user1.userId", userId),
+                Filter.equalTo("user2.userId", userId),
+            )
+        )
+            .get()
+            .addOnSuccessListener { chatQuerySnapshot ->
+                for (document in chatQuerySnapshot.documents) {
+                    val chatData = document.toObject(ChatData::class.java)
+                    chatData?.let {
+                        // Update profile image for user1 in chat node
+                        chatData.user1?.let { user1 ->
+                            if (user1.userId == userId) {
+                                user1.imageUrl = imageUrl
+                            }
+                        }
+                        // Update profile image for user2 in chat node
+                        chatData.user2?.let { user2 ->
+                            if (user2.userId == userId) {
+                                user2.imageUrl = imageUrl
+                            }
+                        }
+                        // Update chat node with modified chat data
+                        document.reference.set(chatData)
+                            .addOnFailureListener { exception ->
+                                handleException(exception, "Cannot Update Chat Data")
+                            }
+                    }
+                }
+            }
+            .addOnFailureListener { exception ->
+                handleException(exception, "Cannot Retrieve Chats")
+            }
     }
 
     private fun getUserData(uid: String) {
@@ -277,8 +313,8 @@ class LCViewModel @Inject constructor(
                                 db.collection(CHATS).document(id).set(chat)
                             }
                         }.addOnFailureListener {
-                        handleException(it)
-                    }
+                            handleException(it)
+                        }
                 } else {
                     handleException(customMessage = "Chat already exists")
                 }
@@ -356,8 +392,8 @@ class LCViewModel @Inject constructor(
                             }
                         }
                     }.addOnFailureListener { exception ->
-                    handleException(exception, "Error finding user with number: $number")
-                }
+                        handleException(exception, "Error finding user with number: $number")
+                    }
             }
         }
     }
@@ -393,9 +429,11 @@ class LCViewModel @Inject constructor(
         currentGroupChatMessageListener = null
     }
 
-    suspend fun uploadProfileImage(uri: Uri) {
+
+    fun uploadProfileImage(uri: Uri) {
         uploadImage(uri) {
             createOrUpdateProfile(imageUrl = it.toString())
+            //updateProfileImageInChatNodes(userId = userData.value?.userId!!, imageUrl = it.toString())
         }
     }
 
@@ -455,7 +493,7 @@ class LCViewModel @Inject constructor(
     fun populateStatuses() {
         val timeDelta = 24L * 60 * 60 * 100
         val cutOff = System.currentTimeMillis() - timeDelta
-        //inProgressStatus.value = true
+        inProgressStatus.value = true
         db.collection(CHATS).where(
             Filter.or(
                 Filter.equalTo("user1.userId", userData.value?.userId),
@@ -468,6 +506,7 @@ class LCViewModel @Inject constructor(
             }
 
             if (value != null) {
+                inProgressStatus.value = false
                 val currentConnections = arrayListOf(userData.value?.userId)
                 val chats = value.toObjects<ChatData>()
                 chats.forEach { chat ->
@@ -480,12 +519,12 @@ class LCViewModel @Inject constructor(
 
                 db.collection(STATUS).whereGreaterThan("timestamp", cutOff)
                     .whereIn("user.userId", currentConnections)
-                    .addSnapshotListener { value, error ->
-                        if (error != null) {
+                    .addSnapshotListener { value1, error1 ->
+                        if (error1 != null) {
                             handleException(error)
                         }
 
-                        if (value != null) {
+                        if (value1 != null) {
                             status.value = value.toObjects()
                             inProgressStatus.value = false
                         }

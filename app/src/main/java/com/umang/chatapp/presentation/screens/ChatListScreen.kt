@@ -94,7 +94,7 @@ fun ChatListScreen(
 
                         ) {
                             Image(
-                                painter = painterResource(id = R.drawable.chaticon), // Replace with your chat logo resource ID
+                                painter = painterResource(id = R.drawable.logo), // Replace with your chat logo resource ID
                                 contentDescription = "Chat Logo",
                                 modifier = Modifier
                                     .size(50.dp)

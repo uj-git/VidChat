@@ -23,7 +23,7 @@ data class ChatData(
 data class ChatUser(
     val userId : String? = "",
     val name : String? = "",
-    val imageUrl: String? = "",
+    var imageUrl: String? = "",
     val number: String? = ""
 
 )
