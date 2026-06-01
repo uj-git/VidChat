@@ -3,8 +3,10 @@ package com.umang.chatapp.presentation.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,35 +14,42 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.umang.chatapp.CheckSignedIn
@@ -55,138 +64,168 @@ fun LoginScreen(
     navController: NavController,
     viewModel: LCViewModel
 ) {
-
     CheckSignedIn(viewModel, navController)
 
     val focus = LocalFocusManager.current
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 brush = Brush.linearGradient(
-                    colors = listOf(
-                        Color(0xFFDAD6C4), // Start color
-                        Color(0xFFC4C43B)  // End color
-                    )
+                    colors = listOf(Color(0xFFDAD6C4), Color(0xFFC4C43B))
                 )
             )
-            .padding(48.dp)
     ) {
         Column(
             modifier = Modifier
-                .clickable { focus.clearFocus() }
                 .fillMaxSize()
-                .wrapContentHeight()
                 .verticalScroll(rememberScrollState())
-                .statusBarsPadding(),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .statusBarsPadding()
+                .padding(horizontal = 32.dp)
+                .clickable { focus.clearFocus() },
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            val emailState = remember { mutableStateOf(TextFieldValue()) }
-            val passwordState = remember { mutableStateOf(TextFieldValue()) }
-
-
             Image(
                 painter = painterResource(id = R.drawable.logo),
                 contentDescription = "App Logo",
-                modifier = Modifier.size(150.dp)
+                modifier = Modifier
+                    .size(120.dp)
+                    .padding(bottom = 8.dp)
             )
 
             Text(
-                text = "Sign In!!",
-                style = MaterialTheme.typography.displayMedium,
-                color = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.padding(top = 48.dp, bottom = 32.dp),
-                fontFamily = FontFamily.Serif
+                text = "Welcome Back",
+                style = MaterialTheme.typography.displaySmall,
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+            Text(
+                text = "Sign in to continue",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.8f),
+                modifier = Modifier.padding(bottom = 40.dp)
             )
 
             OutlinedTextField(
-                value = emailState.value,
-                onValueChange = { emailState.value = it },
-                label = { Text("Email", color = Color.White) },
-                placeholder = { Text("Enter Your Email") },
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
                 leadingIcon = {
-                    Icon(
-                        Icons.Default.Email,
-                        contentDescription = "Password",
-                        modifier = Modifier.size(24.dp),
-                        tint = Color.White
-                    )
+                    Icon(Icons.Default.Email, contentDescription = null, tint = Color.White)
                 },
-                colors = OutlinedTextFieldDefaults.colors(
-                    cursorColor = MaterialTheme.colorScheme.secondary,
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next
                 ),
-                shape = RoundedCornerShape(topEnd =12.dp, bottomStart =12.dp),
+                keyboardActions = KeyboardActions(
+                    onNext = { focus.moveFocus(FocusDirection.Down) }
+                ),
+                colors = loginFieldColors(),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .height(56.dp)
+                    .padding(bottom = 16.dp)
             )
 
             OutlinedTextField(
-                value = passwordState.value,
-                onValueChange = { passwordState.value = it },
-                label = { Text("Password", color = Color.White)  },
-                placeholder = { Text("Enter Your Password") },
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
                 leadingIcon = {
-                    Icon(
-                        Icons.Default.Lock,
-                        contentDescription = "Password",
-                        modifier = Modifier.size(24.dp),
-                        tint = Color.White
-                    )
+                    Icon(Icons.Default.Lock, contentDescription = null, tint = Color.White)
                 },
-                visualTransformation = PasswordVisualTransformation(),
-                colors = OutlinedTextFieldDefaults.colors(
-                    cursorColor = MaterialTheme.colorScheme.secondary,
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                            tint = Color.White
+                        )
+                    }
+                },
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done
                 ),
-                shape = RoundedCornerShape(topEnd =12.dp, bottomStart =12.dp),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        focus.clearFocus()
+                        viewModel.logIn(email, password)
+                    }
+                ),
+                colors = loginFieldColors(),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .height(56.dp)
+                    .padding(bottom = 32.dp)
             )
-
-            Spacer(modifier = Modifier.size(20.dp))
 
             Button(
                 onClick = {
-                    viewModel.logIn(emailState.value.text, passwordState.value.text)
                     focus.clearFocus()
-                    navigateTo(navController, DestinationScreen.ChatList.route)
+                    viewModel.logIn(email, password)
                 },
-                modifier = Modifier.fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp)),
-                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent
+                    containerColor = Color.White,
+                    contentColor = Color(0xFFC4C43B)
                 )
             ) {
                 Text(
                     text = "Sign In",
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
-
                 )
             }
 
-            Text(
-                text = "New User? Go to SignUp ->",
-                color = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier
-                    .padding(top = 16.dp)
-                    .clickable {
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "New here?  ",
+                    color = Color.White.copy(alpha = 0.8f),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = "Create an account",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.clickable {
                         navigateTo(navController, DestinationScreen.SignUp.route)
                     }
-            )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 
     if (viewModel.inProgress.value) {
         CommonProgressBar()
     }
-
 }
+
+@Composable
+private fun loginFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedTextColor = Color.White,
+    unfocusedTextColor = Color.White,
+    focusedLabelColor = Color.White,
+    unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
+    focusedBorderColor = Color.White,
+    unfocusedBorderColor = Color.White.copy(alpha = 0.5f),
+    cursorColor = Color.White
+)

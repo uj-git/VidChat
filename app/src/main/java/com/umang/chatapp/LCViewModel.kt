@@ -433,7 +433,7 @@ class LCViewModel @Inject constructor(
     fun uploadProfileImage(uri: Uri) {
         uploadImage(uri) {
             createOrUpdateProfile(imageUrl = it.toString())
-            //updateProfileImageInChatNodes(userId = userData.value?.userId!!, imageUrl = it.toString())
+            updateProfileImageInChatNodes(userId = userData.value?.userId!!, imageUrl = it.toString())
         }
     }
 
