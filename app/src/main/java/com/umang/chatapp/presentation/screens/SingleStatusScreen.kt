@@ -27,7 +27,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.umang.chatapp.CommonImage
-import com.umang.chatapp.LCViewModel
+import com.umang.chatapp.StatusViewModel
 
 enum class State{
     INITIAL, ACTIVE, COMPLETED
@@ -36,12 +36,12 @@ enum class State{
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SingleStatusScreen(
-    viewModel: LCViewModel,
+    statusViewModel: StatusViewModel,
     navController: NavController,
     userId : String
 ) {
 
-    val statuses = viewModel.status.value.filter {
+    val statuses = statusViewModel.status.value.filter {
         it.user.userId == userId
     }
 

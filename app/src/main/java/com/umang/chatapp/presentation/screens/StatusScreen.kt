@@ -33,6 +33,7 @@ import com.umang.chatapp.ChatCard
 import com.umang.chatapp.CommonDivider
 import com.umang.chatapp.CommonProgressBar
 import com.umang.chatapp.LCViewModel
+import com.umang.chatapp.StatusViewModel
 import com.umang.chatapp.TitleText
 import com.umang.chatapp.navigateTo
 import com.umang.chatapp.presentation.navgraph.DestinationScreen
@@ -41,12 +42,12 @@ import com.umang.chatapp.presentation.navgraph.DestinationScreen
 @Composable
 fun StatusScreen(
     viewModel: LCViewModel,
+    statusViewModel: StatusViewModel,
     navController: NavController
 ) {
-    val inProcess = viewModel.inProgressStatus.value
+    val inProcess = statusViewModel.inProgressStatus.value
 
-
-    val statuses = viewModel.status.value
+    val statuses = statusViewModel.status.value
     val userData = viewModel.userData.value
 
     val myStatus = statuses.filter {
@@ -61,7 +62,7 @@ fun StatusScreen(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
         uri?.let {
-            viewModel.uploadStatus(uri)
+            statusViewModel.uploadStatus(uri)
         }
     }
 

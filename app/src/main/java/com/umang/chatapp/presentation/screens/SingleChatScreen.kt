@@ -38,10 +38,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.umang.chatapp.ChatListViewModel
 import com.umang.chatapp.CommonDivider
 import com.umang.chatapp.CommonImage
 import com.umang.chatapp.LCViewModel
 import com.umang.chatapp.R
+import com.umang.chatapp.SingleChatViewModel
 import com.umang.chatapp.data.ChatUser
 import com.umang.chatapp.data.Message
 import com.umang.chatapp.data.UserData
@@ -50,38 +52,39 @@ import com.umang.chatapp.presentation.navgraph.DestinationScreen
 @Composable
 fun SingleChatScreen(
     viewModel: LCViewModel,
+    chatListViewModel: ChatListViewModel,
+    singleChatViewModel: SingleChatViewModel,
     navController: NavController,
     chatId: String
 ) {
-    var reply by rememberSaveable {
-        mutableStateOf("")
-    }
+    var reply by rememberSaveable { mutableStateOf("") }
 
     val onSendReply = {
-        viewModel.onSendReply(chatId, reply)
+        singleChatViewModel.onSendReply(chatId, reply)
         reply = ""
     }
 
-    var myUser = viewModel.userData.value
-    var currentChat = viewModel.chats.value.first { it.chatId == chatId }
-    var chatUser =
-        if (myUser?.userId == currentChat.user1.userId) currentChat.user2 else currentChat.user1
+    val myUser = viewModel.userData.value
+    val currentChat = chatListViewModel.chats.value.firstOrNull { it.chatId == chatId }
+    val chatUser = currentChat?.let {
+        if (myUser?.userId == it.user1.userId) it.user2 else it.user1
+    }
 
     LaunchedEffect(key1 = Unit) {
-        viewModel.populateMessages(chatId)
+        singleChatViewModel.populateMessages(chatId)
     }
 
     BackHandler {
-        viewModel.depopulateMessages()
+        singleChatViewModel.depopulateMessages()
     }
 
     Column {
         ChatHeader(
-            name = chatUser.name ?: "",
-            imageUrl = chatUser.imageUrl ?: "",
+            name = chatUser?.name ?: "",
+            imageUrl = chatUser?.imageUrl ?: "",
             onBackClicked = {
                 navController.popBackStack()
-                viewModel.depopulateMessages()
+                singleChatViewModel.depopulateMessages()
             },
             onVideoCallClicked = {
                 navController.navigate(DestinationScreen.VideoCall.createRoute(chatId))
@@ -91,17 +94,14 @@ fun SingleChatScreen(
             }
         )
 
-
         MessageBox(
             modifier = Modifier.weight(1f),
-            chatMessages = viewModel.chatMessages.value,
+            chatMessages = singleChatViewModel.chatMessages.value,
             currentUser = myUser!!,
-            chatUser = chatUser,
+            chatUser = chatUser ?: ChatUser(),
         )
         ReplyBox(reply = reply, onReplyChange = { reply = it }, onSendReply = onSendReply)
     }
-
-
 }
 
 @Composable

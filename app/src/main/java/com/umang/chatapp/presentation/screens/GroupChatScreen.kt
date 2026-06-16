@@ -30,6 +30,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.umang.chatapp.GroupChatViewModel
 import com.umang.chatapp.LCViewModel
 import com.umang.chatapp.R
 import com.umang.chatapp.data.GroupMessage
@@ -43,35 +44,34 @@ import com.umang.chatapp.CommonImage
 @Composable
 fun GroupChatScreen(
     viewModel: LCViewModel,
+    groupChatViewModel: GroupChatViewModel,
     navController: NavController,
     groupId: String
 ) {
-    var reply by rememberSaveable {
-        mutableStateOf("")
-    }
+    var reply by rememberSaveable { mutableStateOf("") }
 
     val onSendReply = {
-        viewModel.onSendGroupMessage(groupId, reply)
+        groupChatViewModel.onSendGroupMessage(groupId, reply)
         reply = ""
     }
 
-    var myUser = viewModel.userData.value
-    var currentGroup = viewModel.groupChats.value.first { it.groupId == groupId }
+    val myUser = viewModel.userData.value
+    val currentGroup = groupChatViewModel.groupChats.value.firstOrNull { it.groupId == groupId }
 
     LaunchedEffect(key1 = Unit) {
-        viewModel.populateGroupChats(groupId)
+        groupChatViewModel.populateGroupChats(groupId)
     }
 
     BackHandler {
-        viewModel.depopulateGroupChats()
+        groupChatViewModel.depopulateGroupChats()
     }
 
     Column {
         GroupChatHeader(
-            groupName = currentGroup.groupName ?: "",
+            groupName = currentGroup?.groupName ?: "",
             onBackClicked = {
                 navController.popBackStack()
-                viewModel.depopulateMessages()
+                groupChatViewModel.depopulateGroupChats()
             },
             onVideoCallClicked = {
                 // Handle group video call action
@@ -83,7 +83,7 @@ fun GroupChatScreen(
 
         GroupMessageBox(
             modifier = Modifier.weight(1f),
-            groupMessages = viewModel.groupChatMessages.value,
+            groupMessages = groupChatViewModel.groupChatMessages.value,
             currentUserId = myUser?.userId ?: "",
             userProfileImageUrl = myUser?.imageUrl ?: ""
         )

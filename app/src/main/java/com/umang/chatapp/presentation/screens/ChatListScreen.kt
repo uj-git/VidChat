@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.umang.chatapp.ChatCard
+import com.umang.chatapp.ChatListViewModel
 import com.umang.chatapp.CommonProgressBar
 import com.umang.chatapp.LCViewModel
 import com.umang.chatapp.R
@@ -56,14 +57,15 @@ import com.umang.chatapp.presentation.navgraph.DestinationScreen
 @Composable
 fun ChatListScreen(
     viewModel: LCViewModel,
+    chatListViewModel: ChatListViewModel,
     navController: NavController
 ) {
-    val inProgress = viewModel.inProcessChats.value
+    val inProgress = chatListViewModel.inProcessChats.value
 
     if (inProgress) {
         CommonProgressBar()
     } else {
-        val chats = viewModel.chats.value
+        val chats = chatListViewModel.chats.value
         val userData = viewModel.userData.value
         val showDialog = remember {
             mutableStateOf(false)
@@ -71,7 +73,7 @@ fun ChatListScreen(
         val onFabClick: () -> Unit = { showDialog.value = true }
         val onDismiss: () -> Unit = { showDialog.value = false }
         val onAddChat: (String) -> Unit = {
-            viewModel.onAddChat(it)
+            chatListViewModel.onAddChat(it)
             showDialog.value = false
         }
 

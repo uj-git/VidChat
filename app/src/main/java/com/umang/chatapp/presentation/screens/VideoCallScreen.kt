@@ -39,17 +39,19 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.umang.chatapp.ChatListViewModel
 import com.umang.chatapp.CommonImage
 import com.umang.chatapp.LCViewModel
 
 @Composable
 fun VideoCallScreen(
     viewModel: LCViewModel,
+    chatListViewModel: ChatListViewModel,
     navController: NavController,
     chatId: String
 ) {
     val myUser = viewModel.userData.value
-    val currentChat = viewModel.chats.value.firstOrNull { it.chatId == chatId }
+    val currentChat = chatListViewModel.chats.value.firstOrNull { it.chatId == chatId }
     val chatUser = currentChat?.let {
         if (myUser?.userId == it.user1.userId) it.user2 else it.user1
     }
