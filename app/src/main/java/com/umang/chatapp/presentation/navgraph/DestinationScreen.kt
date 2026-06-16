@@ -14,5 +14,8 @@ sealed class DestinationScreen(
     object SingleStatus : DestinationScreen("singleStatusScreen/{userId}"){
         fun createRoute(userId:String) = "singleStatusScreen/$userId"
     }
+    object VideoCall : DestinationScreen("videoCallScreen/{chatId}") {
+        fun createRoute(chatId: String) = "videoCallScreen/$chatId"
+    }
 
 }

@@ -16,6 +16,7 @@ import com.umang.chatapp.presentation.screens.SignUpScreen
 import com.umang.chatapp.presentation.screens.SingleChatScreen
 import com.umang.chatapp.presentation.screens.SingleStatusScreen
 import com.umang.chatapp.presentation.screens.StatusScreen
+import com.umang.chatapp.presentation.screens.VideoCallScreen
 import com.umang.chatapp.ui.theme.ChatAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -66,6 +67,13 @@ class MainActivity : ComponentActivity() {
                 val userId = it.arguments?.getString("userId")
                 userId?.let {
                     SingleStatusScreen(viewModel = viewModel, navController = navController, userId = it)
+                }
+            }
+
+            composable(DestinationScreen.VideoCall.route) {
+                val chatId = it.arguments?.getString("chatId")
+                chatId?.let {
+                    VideoCallScreen(viewModel = viewModel, navController = navController, chatId = chatId)
                 }
             }
         }

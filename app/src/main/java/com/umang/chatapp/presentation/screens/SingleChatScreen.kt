@@ -45,6 +45,7 @@ import com.umang.chatapp.R
 import com.umang.chatapp.data.ChatUser
 import com.umang.chatapp.data.Message
 import com.umang.chatapp.data.UserData
+import com.umang.chatapp.presentation.navgraph.DestinationScreen
 
 @Composable
 fun SingleChatScreen(
@@ -83,7 +84,7 @@ fun SingleChatScreen(
                 viewModel.depopulateMessages()
             },
             onVideoCallClicked = {
-                // Handle video call action
+                navController.navigate(DestinationScreen.VideoCall.createRoute(chatId))
             },
             onAudioCallClicked = {
                 // Handle audio call action
