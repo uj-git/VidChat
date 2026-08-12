@@ -16,3 +16,4 @@ local.properties
 .idea/vcs.xml
 .idea/misc.xml
 *.xml
+*.idea
