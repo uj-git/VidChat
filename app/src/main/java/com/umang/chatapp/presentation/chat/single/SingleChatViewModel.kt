@@ -9,6 +9,7 @@ import com.umang.chatapp.domain.repository.AuthRepository
 import com.umang.chatapp.domain.repository.ChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -27,10 +28,12 @@ class SingleChatViewModel @Inject constructor(
         inProgressChatMessage.value = true
         messagesJob?.cancel()
         messagesJob = viewModelScope.launch {
-            chatRepository.observeMessages(chatId).collect {
-                chatMessages.value = it
-                inProgressChatMessage.value = false
-            }
+            chatRepository.observeMessages(chatId)
+                .catch { e -> inProgressChatMessage.value = false; event.value = Event(e.message ?: "Failed to load messages") }
+                .collect {
+                    chatMessages.value = it
+                    inProgressChatMessage.value = false
+                }
         }
     }
 

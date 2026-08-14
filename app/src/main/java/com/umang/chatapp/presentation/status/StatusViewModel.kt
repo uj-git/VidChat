@@ -9,6 +9,7 @@ import com.umang.chatapp.domain.model.Status
 import com.umang.chatapp.domain.repository.AuthRepository
 import com.umang.chatapp.domain.repository.StatusRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -27,10 +28,12 @@ class StatusViewModel @Inject constructor(
             val cutoff = System.currentTimeMillis() - (24L * 60 * 60 * 1000)
             viewModelScope.launch {
                 inProgressStatus.value = true
-                statusRepository.observeStatuses(uid, cutoff).collect {
-                    status.value = it
-                    inProgressStatus.value = false
-                }
+                statusRepository.observeStatuses(uid, cutoff)
+                    .catch { e -> inProgressStatus.value = false; event.value = Event(e.message ?: "Failed to load statuses") }
+                    .collect {
+                        status.value = it
+                        inProgressStatus.value = false
+                    }
             }
         }
     }

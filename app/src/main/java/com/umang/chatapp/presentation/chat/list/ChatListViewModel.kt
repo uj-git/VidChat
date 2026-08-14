@@ -8,6 +8,7 @@ import com.umang.chatapp.domain.model.Event
 import com.umang.chatapp.domain.repository.AuthRepository
 import com.umang.chatapp.domain.repository.ChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,10 +26,12 @@ class ChatListViewModel @Inject constructor(
         authRepository.currentPhoneNumber?.let { uid ->
             viewModelScope.launch {
                 inProcessChats.value = true
-                chatRepository.observeChats(uid).collect {
-                    chats.value = it
-                    inProcessChats.value = false
-                }
+                chatRepository.observeChats(uid)
+                    .catch { e -> inProcessChats.value = false; event.value = Event(e.message ?: "Failed to load chats") }
+                    .collect {
+                        chats.value = it
+                        inProcessChats.value = false
+                    }
             }
         }
     }

@@ -10,6 +10,7 @@ import com.umang.chatapp.domain.repository.AuthRepository
 import com.umang.chatapp.domain.repository.GroupChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -28,9 +29,11 @@ class GroupChatViewModel @Inject constructor(
     init {
         authRepository.currentPhoneNumber?.let { uid ->
             viewModelScope.launch {
-                groupChatRepository.observeGroupChats(uid).collect {
-                    groupChats.value = it
-                }
+                groupChatRepository.observeGroupChats(uid)
+                    .catch { e -> event.value = Event(e.message ?: "Failed to load group chats") }
+                    .collect {
+                        groupChats.value = it
+                    }
             }
         }
     }
@@ -39,10 +42,12 @@ class GroupChatViewModel @Inject constructor(
         inProgressGroupChatMessage.value = true
         messagesJob?.cancel()
         messagesJob = viewModelScope.launch {
-            groupChatRepository.observeGroupMessages(groupId).collect {
-                groupChatMessages.value = it
-                inProgressGroupChatMessage.value = false
-            }
+            groupChatRepository.observeGroupMessages(groupId)
+                .catch { e -> inProgressGroupChatMessage.value = false; event.value = Event(e.message ?: "Failed to load messages") }
+                .collect {
+                    groupChatMessages.value = it
+                    inProgressGroupChatMessage.value = false
+                }
         }
     }
 
