@@ -5,7 +5,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
-import com.google.firebase.firestore.toObjects
 import com.umang.chatapp.data.remote.CHATS
 import com.umang.chatapp.data.remote.MESSAGE
 import com.umang.chatapp.data.remote.USER_NODE
@@ -13,7 +12,6 @@ import com.umang.chatapp.data.remote.awaitTask
 import com.umang.chatapp.domain.model.ChatData
 import com.umang.chatapp.domain.model.ChatUser
 import com.umang.chatapp.domain.model.Message
-import com.umang.chatapp.domain.model.UserData
 import com.umang.chatapp.domain.repository.ChatRepository
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -59,16 +57,17 @@ class ChatRepositoryImpl @Inject constructor(
         val uid = checkNotNull(auth.currentUser?.uid) { "User not signed in" }
 
         val currentUserDoc = db.collection(USER_NODE).document(uid).get().awaitTask()
-        val currentUser = checkNotNull(currentUserDoc.toObject<UserData>()) { "Current user not found" }
+        check(currentUserDoc.exists()) { "Current user not found" }
+        val currentUserNumber = currentUserDoc.getString("number")
 
         val existingChat = db.collection(CHATS).where(
             Filter.or(
                 Filter.and(
                     Filter.equalTo("user1.number", number),
-                    Filter.equalTo("user2.number", currentUser.number)
+                    Filter.equalTo("user2.number", currentUserNumber)
                 ),
                 Filter.and(
-                    Filter.equalTo("user1.number", currentUser.number),
+                    Filter.equalTo("user1.number", currentUserNumber),
                     Filter.equalTo("user2.number", number)
                 )
             )
@@ -78,12 +77,22 @@ class ChatRepositoryImpl @Inject constructor(
         val partnerSnapshot = db.collection(USER_NODE).whereEqualTo("number", number).get().awaitTask()
         check(!partnerSnapshot.isEmpty) { "Number not found" }
 
-        val partner = partnerSnapshot.toObjects<UserData>()[0]
+        val partner = partnerSnapshot.documents[0]
         val chatId = db.collection(CHATS).document().id
         val chat = ChatData(
             chatId = chatId,
-            user1 = ChatUser(currentUser.userId, currentUser.name, currentUser.imageUrl, currentUser.number),
-            user2 = ChatUser(partner.userId, partner.name, partner.imageUrl, partner.number)
+            user1 = ChatUser(
+                currentUserDoc.getString("userId"),
+                currentUserDoc.getString("name"),
+                currentUserDoc.getString("imageUrl"),
+                currentUserNumber
+            ),
+            user2 = ChatUser(
+                partner.getString("userId"),
+                partner.getString("name"),
+                partner.getString("imageUrl"),
+                partner.getString("number")
+            )
         )
         db.collection(CHATS).document(chatId).set(chat).awaitTask()
     }

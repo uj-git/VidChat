@@ -26,7 +26,7 @@ class GroupChatViewModel @Inject constructor(
     private var messagesJob: Job? = null
 
     init {
-        authRepository.currentUserId?.let { uid ->
+        authRepository.currentPhoneNumber?.let { uid ->
             viewModelScope.launch {
                 groupChatRepository.observeGroupChats(uid).collect {
                     groupChats.value = it
@@ -53,7 +53,7 @@ class GroupChatViewModel @Inject constructor(
     }
 
     fun onSendGroupMessage(groupId: String, message: String) {
-        val uid = authRepository.currentUserId ?: return
+        val uid = authRepository.currentPhoneNumber ?: return
         viewModelScope.launch {
             groupChatRepository.sendGroupMessage(groupId, uid, message)
                 .onFailure { event.value = Event(it.message ?: "Failed to send message") }

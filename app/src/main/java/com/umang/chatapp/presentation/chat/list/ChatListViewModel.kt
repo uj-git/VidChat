@@ -22,7 +22,7 @@ class ChatListViewModel @Inject constructor(
     val event = mutableStateOf<Event<String>?>(null)
 
     init {
-        authRepository.currentUserId?.let { uid ->
+        authRepository.currentPhoneNumber?.let { uid ->
             viewModelScope.launch {
                 inProcessChats.value = true
                 chatRepository.observeChats(uid).collect {

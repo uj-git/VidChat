@@ -1,15 +1,12 @@
 package com.umang.chatapp.domain.model
 
+import java.time.Instant
+
 data class UserData(
-    var userId: String? = "",
-    var name: String? = "",
-    var number: String? = "",
-    var imageUrl: String? = ""
-) {
-    fun toMap() = mapOf(
-        "userId" to userId,
-        "name" to name,
-        "number" to number,
-        "imageUrl" to imageUrl
-    )
-}
+    val id: Long? = null,
+    val phoneNumber: String? = null,
+    val username: String? = null,
+    val displayName: String? = null,
+    val email: String? = null,
+    val createdAt: Instant? = null
+)

@@ -23,7 +23,7 @@ class StatusViewModel @Inject constructor(
     val event = mutableStateOf<Event<String>?>(null)
 
     init {
-        authRepository.currentUserId?.let { uid ->
+        authRepository.currentPhoneNumber?.let { uid ->
             val cutoff = System.currentTimeMillis() - (24L * 60 * 60 * 1000)
             viewModelScope.launch {
                 inProgressStatus.value = true

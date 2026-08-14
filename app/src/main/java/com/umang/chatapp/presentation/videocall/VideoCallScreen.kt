@@ -53,7 +53,7 @@ fun VideoCallScreen(
     val myUser = authViewModel.userData.value
     val currentChat = chatListViewModel.chats.value.firstOrNull { it.chatId == chatId }
     val chatUser = currentChat?.let {
-        if (myUser?.userId == it.user1.userId) it.user2 else it.user1
+        if (myUser?.phoneNumber == it.user1.userId) it.user2 else it.user1
     }
 
     var isMuted by remember { mutableStateOf(false) }
@@ -78,7 +78,7 @@ fun VideoCallScreen(
         }
 
         LocalUserPiPView(
-            imageUrl = myUser?.imageUrl ?: "",
+            imageUrl = "",
             isCameraOn = isCameraOn,
             modifier = Modifier.align(Alignment.TopStart).padding(top = 48.dp, start = 16.dp)
         )

@@ -10,10 +10,12 @@ import com.google.firebase.storage.storage
 import com.umang.chatapp.data.repository.AuthRepositoryImpl
 import com.umang.chatapp.data.repository.ChatRepositoryImpl
 import com.umang.chatapp.data.repository.GroupChatRepositoryImpl
+import com.umang.chatapp.data.repository.ProfileRepositoryImpl
 import com.umang.chatapp.data.repository.StatusRepositoryImpl
 import com.umang.chatapp.domain.repository.AuthRepository
 import com.umang.chatapp.domain.repository.ChatRepository
 import com.umang.chatapp.domain.repository.GroupChatRepository
+import com.umang.chatapp.domain.repository.ProfileRepository
 import com.umang.chatapp.domain.repository.StatusRepository
 import dagger.Binds
 import dagger.Module
@@ -29,6 +31,10 @@ abstract class AppModule {
     @Singleton
     @Binds
     abstract fun bindAuthRepository(impl: AuthRepositoryImpl): AuthRepository
+
+    @Singleton
+    @Binds
+    abstract fun bindProfileRepository(impl: ProfileRepositoryImpl): ProfileRepository
 
     @Singleton
     @Binds

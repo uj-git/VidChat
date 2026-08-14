@@ -61,7 +61,7 @@ fun SingleChatScreen(
     val myUser = authViewModel.userData.value
     val currentChat = chatListViewModel.chats.value.firstOrNull { it.chatId == chatId }
     val chatUser = currentChat?.let {
-        if (myUser?.userId == it.user1.userId) it.user2 else it.user1
+        if (myUser?.phoneNumber == it.user1.userId) it.user2 else it.user1
     }
 
     LaunchedEffect(Unit) { singleChatViewModel.populateMessages(chatId) }
@@ -129,9 +129,9 @@ fun SingleChatHeader(
 fun MessageBox(modifier: Modifier, chatMessages: List<Message>, currentUser: UserData, chatUser: ChatUser) {
     LazyColumn(modifier = modifier) {
         items(chatMessages) { msg ->
-            val alignment = if (msg.sendBy == currentUser.userId) Alignment.End else Alignment.Start
-            val color = if (msg.sendBy == currentUser.userId) Color(0xFFDAD6C4) else Color(0xFFC4C43B)
-            val image = if (msg.sendBy == currentUser.userId) currentUser.imageUrl else chatUser.imageUrl
+            val alignment = if (msg.sendBy == currentUser.phoneNumber) Alignment.End else Alignment.Start
+            val color = if (msg.sendBy == currentUser.phoneNumber) Color(0xFFDAD6C4) else Color(0xFFC4C43B)
+            val image = if (msg.sendBy == currentUser.phoneNumber) null else chatUser.imageUrl
             Column(
                 modifier = Modifier.fillMaxWidth().padding(8.dp),
                 horizontalAlignment = alignment

@@ -4,7 +4,6 @@ import android.net.Uri
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.toObject
 import com.google.firebase.firestore.toObjects
 import com.google.firebase.storage.FirebaseStorage
 import com.umang.chatapp.data.remote.CHATS
@@ -14,7 +13,6 @@ import com.umang.chatapp.data.remote.awaitTask
 import com.umang.chatapp.domain.model.ChatData
 import com.umang.chatapp.domain.model.ChatUser
 import com.umang.chatapp.domain.model.Status
-import com.umang.chatapp.domain.model.UserData
 import com.umang.chatapp.domain.repository.StatusRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
@@ -73,14 +71,19 @@ class StatusRepositoryImpl @Inject constructor(
     override suspend fun uploadStatus(uri: Uri): Result<Unit> = runCatching {
         val uid = checkNotNull(auth.currentUser?.uid) { "User not signed in" }
         val userDoc = db.collection(USER_NODE).document(uid).get().awaitTask()
-        val user = checkNotNull(userDoc.toObject<UserData>()) { "User not found" }
+        check(userDoc.exists()) { "User not found" }
 
         val imageRef = storage.reference.child("images/${UUID.randomUUID()}")
         imageRef.putFile(uri).awaitTask()
         val downloadUri = imageRef.downloadUrl.awaitTask()
 
         val status = Status(
-            user = ChatUser(user.userId, user.name, user.imageUrl, user.number),
+            user = ChatUser(
+                userDoc.getString("userId"),
+                userDoc.getString("name"),
+                userDoc.getString("imageUrl"),
+                userDoc.getString("number")
+            ),
             imageUrl = downloadUri.toString(),
             timeStamp = System.currentTimeMillis()
         )

@@ -65,8 +65,8 @@ fun GroupChatScreen(
         GroupMessageBox(
             modifier = Modifier.weight(1f),
             groupMessages = groupChatViewModel.groupChatMessages.value,
-            currentUserId = myUser?.userId ?: "",
-            userProfileImageUrl = myUser?.imageUrl ?: ""
+            currentUserId = myUser?.phoneNumber ?: "",
+            userProfileImageUrl = ""
         )
         ReplyBox(
             reply = reply,

@@ -11,7 +11,6 @@ import com.umang.chatapp.data.remote.awaitTask
 import com.umang.chatapp.domain.model.ChatUser
 import com.umang.chatapp.domain.model.GroupChatData
 import com.umang.chatapp.domain.model.GroupMessage
-import com.umang.chatapp.domain.model.UserData
 import com.umang.chatapp.domain.repository.GroupChatRepository
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -67,17 +66,27 @@ class GroupChatRepositoryImpl @Inject constructor(
     ): Result<Unit> = runCatching {
         val uid = checkNotNull(auth.currentUser?.uid) { "User not signed in" }
         val currentUserDoc = db.collection(USER_NODE).document(uid).get().awaitTask()
-        val currentUser = checkNotNull(currentUserDoc.toObject<UserData>()) { "User not found" }
+        check(currentUserDoc.exists()) { "User not found" }
 
         val members = mutableListOf(
-            ChatUser(currentUser.userId, currentUser.name, currentUser.imageUrl, currentUser.number)
+            ChatUser(
+                currentUserDoc.getString("userId"),
+                currentUserDoc.getString("name"),
+                currentUserDoc.getString("imageUrl"),
+                currentUserDoc.getString("number")
+            )
         )
         memberNumbers.forEach { number ->
             val partnerSnapshot = db.collection(USER_NODE).whereEqualTo("number", number).get().awaitTask()
-            if (!partnerSnapshot.isEmpty) {
-                partnerSnapshot.documents.firstOrNull()?.toObject<UserData>()?.let { userData ->
-                    members.add(ChatUser(userData.userId, userData.name, userData.imageUrl, userData.number))
-                }
+            partnerSnapshot.documents.firstOrNull()?.let { doc ->
+                members.add(
+                    ChatUser(
+                        doc.getString("userId"),
+                        doc.getString("name"),
+                        doc.getString("imageUrl"),
+                        doc.getString("number")
+                    )
+                )
             }
         }
 

@@ -41,7 +41,7 @@ class SingleChatViewModel @Inject constructor(
     }
 
     fun onSendReply(chatId: String, message: String) {
-        val uid = authRepository.currentUserId ?: return
+        val uid = authRepository.currentPhoneNumber ?: return
         viewModelScope.launch {
             chatRepository.sendMessage(chatId, uid, message)
                 .onFailure { event.value = Event(it.message ?: "Failed to send message") }

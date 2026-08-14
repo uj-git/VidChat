@@ -1,27 +1,20 @@
 package com.umang.chatapp.presentation.profile
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.AccountCircle
+import androidx.compose.material.icons.rounded.Badge
+import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Phone
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,6 +27,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -49,7 +43,6 @@ import com.umang.chatapp.presentation.auth.AuthViewModel
 import com.umang.chatapp.presentation.common.components.BottomNavigationItem
 import com.umang.chatapp.presentation.common.components.BottomNavigationMenu
 import com.umang.chatapp.presentation.common.components.CommonDivider
-import com.umang.chatapp.presentation.common.components.CommonImage
 import com.umang.chatapp.presentation.common.components.CommonProgressBar
 import com.umang.chatapp.presentation.common.components.navigateTo
 import com.umang.chatapp.presentation.navigation.DestinationScreen
@@ -67,8 +60,10 @@ fun ProfileScreen(
     }
 
     val userData = authViewModel.userData.value
-    var name by rememberSaveable { mutableStateOf(userData?.name ?: "") }
-    var number by rememberSaveable { mutableStateOf(userData?.number ?: "") }
+    var email by rememberSaveable(userData) { mutableStateOf(userData?.email ?: "") }
+    var displayName by rememberSaveable(userData) { mutableStateOf(userData?.displayName ?: "") }
+
+    LaunchedEffect(Unit) { authViewModel.refreshProfile() }
 
     Scaffold(
         topBar = {
@@ -89,7 +84,11 @@ fun ProfileScreen(
                     }
                 },
                 actions = {
-                    TextButton(onClick = { profileViewModel.createOrUpdateProfile(name = name, number = number) }) {
+                    TextButton(onClick = {
+                        profileViewModel.updateProfile(email = email, displayName = displayName) {
+                            authViewModel.refreshProfile()
+                        }
+                    }) {
                         Text("Save", style = MaterialTheme.typography.bodyMedium, color = Color.Black)
                     }
                 }
@@ -107,7 +106,9 @@ fun ProfileScreen(
             ) {
                 Text(text = "Profile", fontWeight = FontWeight.Bold, modifier = Modifier.padding(16.dp))
                 CommonDivider()
-                ProfileImageSection(imageUrl = userData?.imageUrl, profileViewModel = profileViewModel)
+
+                ProfileField(icon = Icons.Rounded.AccountCircle, label = "Username", value = userData?.username ?: "")
+                ProfileField(icon = Icons.Rounded.Phone, label = "Phone", value = userData?.phoneNumber ?: "")
                 CommonDivider()
 
                 Row(
@@ -115,9 +116,10 @@ fun ProfileScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Icon(imageVector = Icons.Rounded.Person, contentDescription = "Name", Modifier.size(30.dp))
+                    Icon(imageVector = Icons.Rounded.Badge, contentDescription = "Display name", Modifier.padding(end = 8.dp))
                     TextField(
-                        value = name, onValueChange = { name = it },
+                        value = displayName, onValueChange = { displayName = it },
+                        placeholder = { Text("Display name") },
                         colors = TextFieldDefaults.colors(
                             focusedTextColor = Color.Black, focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent, disabledContainerColor = Color.Transparent
@@ -129,9 +131,10 @@ fun ProfileScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Icon(imageVector = Icons.Rounded.Phone, contentDescription = "Phone", Modifier.size(30.dp))
+                    Icon(imageVector = Icons.Rounded.Email, contentDescription = "Email", Modifier.padding(end = 8.dp))
                     TextField(
-                        value = number, onValueChange = { number = it },
+                        value = email, onValueChange = { email = it },
+                        placeholder = { Text("Email") },
                         colors = TextFieldDefaults.colors(
                             focusedTextColor = Color.Black, focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent, disabledContainerColor = Color.Transparent
@@ -158,19 +161,15 @@ fun ProfileScreen(
 }
 
 @Composable
-private fun ProfileImageSection(imageUrl: String?, profileViewModel: ProfileViewModel) {
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let { profileViewModel.uploadProfileImage(it) }
-    }
-    Box(modifier = Modifier.height(intrinsicSize = IntrinsicSize.Min)) {
-        Column(
-            modifier = Modifier.padding(8.dp).fillMaxWidth().clickable { launcher.launch("image/*") },
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Card(shape = CircleShape, modifier = Modifier.padding(8.dp).size(100.dp)) {
-                CommonImage(data = imageUrl)
-            }
-            Text(text = "Change Profile Picture")
+private fun ProfileField(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(imageVector = icon, contentDescription = label, modifier = Modifier.padding(end = 12.dp))
+        Column {
+            Text(text = label, style = MaterialTheme.typography.labelSmall, color = Color.DarkGray)
+            Text(text = value, style = MaterialTheme.typography.bodyLarge)
         }
     }
 }

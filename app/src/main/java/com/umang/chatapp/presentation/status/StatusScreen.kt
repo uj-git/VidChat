@@ -47,8 +47,8 @@ fun StatusScreen(
 ) {
     val statuses = statusViewModel.status.value
     val userData = authViewModel.userData.value
-    val myStatus = statuses.filter { it.user.userId == userData?.userId }
-    val otherStatus = statuses.filter { it.user.userId != userData?.userId }
+    val myStatus = statuses.filter { it.user.userId == userData?.phoneNumber }
+    val otherStatus = statuses.filter { it.user.userId != userData?.phoneNumber }
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let { statusViewModel.uploadStatus(it) }

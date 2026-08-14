@@ -126,7 +126,7 @@ fun ChatListScreen(
             } else {
                 LazyColumn(modifier = Modifier.weight(1f)) {
                     items(chats) { chat ->
-                        val chatUser = if (chat.user1.userId == userData?.userId) chat.user2 else chat.user1
+                        val chatUser = if (chat.user1.userId == userData?.phoneNumber) chat.user2 else chat.user1
                         ChatCard(imageUrl = chatUser.imageUrl, name = chatUser.name) {
                             chat.chatId?.let { navigateTo(navController, DestinationScreen.SingleChat.createRoute(it)) }
                         }
