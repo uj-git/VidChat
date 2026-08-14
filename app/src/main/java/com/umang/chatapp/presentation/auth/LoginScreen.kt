@@ -20,7 +20,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -47,7 +47,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -63,7 +62,7 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
     CheckSignedIn(viewModel, navController)
 
     val focus = LocalFocusManager.current
-    var email by rememberSaveable { mutableStateOf("") }
+    var identifier by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
@@ -103,11 +102,11 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
             )
 
             OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email") },
-                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = Color.White) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
+                value = identifier,
+                onValueChange = { identifier = it },
+                label = { Text("Phone number or username") },
+                leadingIcon = { Icon(Icons.Default.AccountCircle, contentDescription = null, tint = Color.White) },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 keyboardActions = KeyboardActions(onNext = { focus.moveFocus(FocusDirection.Down) }),
                 colors = loginFieldColors(),
                 shape = RoundedCornerShape(12.dp),
@@ -130,8 +129,8 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
                     }
                 },
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { focus.clearFocus(); viewModel.logIn(email, password) }),
+                keyboardOptions = KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Password, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { focus.clearFocus(); viewModel.logIn(identifier, password) }),
                 colors = loginFieldColors(),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true,
@@ -139,7 +138,7 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
             )
 
             Button(
-                onClick = { focus.clearFocus(); viewModel.logIn(email, password) },
+                onClick = { focus.clearFocus(); viewModel.logIn(identifier, password) },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color(0xFFC4C43B))

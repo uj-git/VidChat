@@ -6,14 +6,15 @@ import androidx.lifecycle.viewModelScope
 import com.umang.chatapp.domain.model.Event
 import com.umang.chatapp.domain.model.UserData
 import com.umang.chatapp.domain.repository.AuthRepository
+import com.umang.chatapp.domain.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
+    private val profileRepository: ProfileRepository,
 ) : ViewModel() {
 
     val userData = mutableStateOf<UserData?>(null)
@@ -21,53 +22,48 @@ class AuthViewModel @Inject constructor(
     val inProgress = mutableStateOf(false)
     val event = mutableStateOf<Event<String>?>(null)
 
-    private var userObserverJob: Job? = null
-
     init {
-        if (signIn.value) startObservingUser()
+        if (signIn.value) refreshProfile()
     }
 
-    private fun startObservingUser() {
-        userObserverJob?.cancel()
-        userObserverJob = viewModelScope.launch {
-            inProgress.value = true
-            authRepository.observeCurrentUser().collect {
-                userData.value = it
-                inProgress.value = false
-            }
-        }
-    }
-
-    fun signUp(name: String, number: String, email: String, password: String) {
+    fun register(phoneNumber: String, username: String, password: String) {
         viewModelScope.launch {
             inProgress.value = true
-            authRepository.signUp(name, number, email, password)
+            authRepository.register(phoneNumber, username, password)
                 .onSuccess {
                     signIn.value = true
-                    startObservingUser()
+                    refreshProfile()
                 }
                 .onFailure { handleError(it) }
         }
     }
 
-    fun logIn(email: String, password: String) {
+    fun logIn(identifier: String, password: String) {
         viewModelScope.launch {
             inProgress.value = true
-            authRepository.logIn(email, password)
+            authRepository.login(identifier, password)
                 .onSuccess {
                     signIn.value = true
-                    startObservingUser()
+                    refreshProfile()
                 }
                 .onFailure { handleError(it) }
         }
     }
 
     fun logOut() {
-        userObserverJob?.cancel()
-        authRepository.logOut()
+        authRepository.logout()
         signIn.value = false
         userData.value = null
         event.value = Event("Logged Out")
+    }
+
+    fun refreshProfile() {
+        viewModelScope.launch {
+            inProgress.value = true
+            profileRepository.getProfile()
+                .onSuccess { userData.value = it; inProgress.value = false }
+                .onFailure { handleError(it) }
+        }
     }
 
     private fun handleError(e: Throwable) {

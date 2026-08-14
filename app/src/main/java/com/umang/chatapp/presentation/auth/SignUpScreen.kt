@@ -20,10 +20,9 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
@@ -65,9 +64,8 @@ fun SignUpScreen(navController: NavController, viewModel: AuthViewModel) {
     CheckSignedIn(viewModel, navController)
     val focus = LocalFocusManager.current
 
-    var name by rememberSaveable { mutableStateOf("") }
-    var number by rememberSaveable { mutableStateOf("") }
-    var email by rememberSaveable { mutableStateOf("") }
+    var phoneNumber by rememberSaveable { mutableStateOf("") }
+    var username by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
@@ -107,15 +105,7 @@ fun SignUpScreen(navController: NavController, viewModel: AuthViewModel) {
             )
 
             OutlinedTextField(
-                value = name, onValueChange = { name = it }, label = { Text("Full Name") },
-                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = Color.White) },
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                keyboardActions = KeyboardActions(onNext = { focus.moveFocus(FocusDirection.Down) }),
-                colors = signUpFieldColors(), shape = RoundedCornerShape(12.dp), singleLine = true,
-                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
-            )
-            OutlinedTextField(
-                value = number, onValueChange = { number = it }, label = { Text("Phone Number") },
+                value = phoneNumber, onValueChange = { phoneNumber = it }, label = { Text("Phone Number") },
                 leadingIcon = { Icon(Icons.Default.Call, contentDescription = null, tint = Color.White) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Next),
                 keyboardActions = KeyboardActions(onNext = { focus.moveFocus(FocusDirection.Down) }),
@@ -123,9 +113,9 @@ fun SignUpScreen(navController: NavController, viewModel: AuthViewModel) {
                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
             )
             OutlinedTextField(
-                value = email, onValueChange = { email = it }, label = { Text("Email") },
-                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = Color.White) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
+                value = username, onValueChange = { username = it }, label = { Text("Username") },
+                leadingIcon = { Icon(Icons.Default.AccountCircle, contentDescription = null, tint = Color.White) },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 keyboardActions = KeyboardActions(onNext = { focus.moveFocus(FocusDirection.Down) }),
                 colors = signUpFieldColors(), shape = RoundedCornerShape(12.dp), singleLine = true,
                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
@@ -143,13 +133,13 @@ fun SignUpScreen(navController: NavController, viewModel: AuthViewModel) {
                 },
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { focus.clearFocus(); viewModel.signUp(name, number, email, password) }),
+                keyboardActions = KeyboardActions(onDone = { focus.clearFocus(); viewModel.register(phoneNumber, username, password) }),
                 colors = signUpFieldColors(), shape = RoundedCornerShape(12.dp), singleLine = true,
                 modifier = Modifier.fillMaxWidth().padding(bottom = 28.dp)
             )
 
             Button(
-                onClick = { focus.clearFocus(); viewModel.signUp(name, number, email, password) },
+                onClick = { focus.clearFocus(); viewModel.register(phoneNumber, username, password) },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color(0xFFC4C43B))
