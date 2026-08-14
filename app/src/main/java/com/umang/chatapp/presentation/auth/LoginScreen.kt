@@ -54,12 +54,14 @@ import androidx.navigation.NavController
 import com.umang.chatapp.R
 import com.umang.chatapp.presentation.common.components.CheckSignedIn
 import com.umang.chatapp.presentation.common.components.CommonProgressBar
+import com.umang.chatapp.presentation.common.components.ShowEventToast
 import com.umang.chatapp.presentation.common.components.navigateTo
 import com.umang.chatapp.presentation.navigation.DestinationScreen
 
 @Composable
 fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
     CheckSignedIn(viewModel, navController)
+    ShowEventToast(viewModel.event.value)
 
     val focus = LocalFocusManager.current
     var identifier by rememberSaveable { mutableStateOf("") }

@@ -44,6 +44,7 @@ import com.umang.chatapp.presentation.common.components.BottomNavigationItem
 import com.umang.chatapp.presentation.common.components.BottomNavigationMenu
 import com.umang.chatapp.presentation.common.components.CommonDivider
 import com.umang.chatapp.presentation.common.components.CommonProgressBar
+import com.umang.chatapp.presentation.common.components.ShowEventToast
 import com.umang.chatapp.presentation.common.components.navigateTo
 import com.umang.chatapp.presentation.navigation.DestinationScreen
 
@@ -55,6 +56,8 @@ fun ProfileScreen(
     navController: NavController
 ) {
     LaunchedEffect(Unit) { authViewModel.refreshProfile() }
+    ShowEventToast(authViewModel.event.value)
+    ShowEventToast(profileViewModel.event.value)
 
     if (authViewModel.inProgress.value || profileViewModel.inProgress.value) {
         CommonProgressBar()

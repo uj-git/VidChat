@@ -1,6 +1,6 @@
 package com.umang.chatapp.domain.model
 
-import java.time.Instant
+import java.time.LocalDateTime
 
 data class UserData(
     val id: Long? = null,
@@ -8,5 +8,5 @@ data class UserData(
     val username: String? = null,
     val displayName: String? = null,
     val email: String? = null,
-    val createdAt: Instant? = null
+    val createdAt: LocalDateTime? = null
 )

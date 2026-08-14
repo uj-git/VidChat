@@ -5,6 +5,7 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.umang.chatapp.data.remote.AuthInterceptor
 import com.umang.chatapp.data.remote.BASE_URL
 import com.umang.chatapp.data.remote.InstantJsonAdapter
+import com.umang.chatapp.data.remote.LocalDateTimeJsonAdapter
 import com.umang.chatapp.data.remote.api.AuthApi
 import com.umang.chatapp.data.remote.api.UserApi
 import dagger.Module
@@ -26,6 +27,7 @@ object NetworkModule {
     @Singleton
     fun provideMoshi(): Moshi = Moshi.Builder()
         .add(InstantJsonAdapter())
+        .add(LocalDateTimeJsonAdapter())
         .add(KotlinJsonAdapterFactory())
         .build()
 

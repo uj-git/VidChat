@@ -1,7 +1,7 @@
 package com.umang.chatapp.data.remote.dto
 
 import com.squareup.moshi.JsonClass
-import java.time.Instant
+import java.time.LocalDateTime
 
 @JsonClass(generateAdapter = true)
 data class UserProfileResponseDto(
@@ -10,7 +10,7 @@ data class UserProfileResponseDto(
     val email: String?,
     val username: String,
     val displayName: String?,
-    val createdAt: Instant?
+    val createdAt: LocalDateTime?
 )
 
 @JsonClass(generateAdapter = true)

@@ -1,5 +1,6 @@
 package com.umang.chatapp.presentation.common.components
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,6 +24,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -39,6 +41,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.transform.CircleCropTransformation
+import com.umang.chatapp.domain.model.Event
 import com.umang.chatapp.presentation.auth.AuthViewModel
 import com.umang.chatapp.presentation.navigation.DestinationScreen
 
@@ -61,6 +64,16 @@ fun CommonProgressBar() {
         horizontalArrangement = Arrangement.Center
     ) {
         CircularProgressIndicator()
+    }
+}
+
+@Composable
+fun ShowEventToast(event: Event<String>?) {
+    val context = LocalContext.current
+    LaunchedEffect(event) {
+        event?.getContentOrNull()?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        }
     }
 }
 
