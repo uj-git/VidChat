@@ -54,6 +54,8 @@ fun ProfileScreen(
     profileViewModel: ProfileViewModel,
     navController: NavController
 ) {
+    LaunchedEffect(Unit) { authViewModel.refreshProfile() }
+
     if (authViewModel.inProgress.value || profileViewModel.inProgress.value) {
         CommonProgressBar()
         return
@@ -62,8 +64,6 @@ fun ProfileScreen(
     val userData = authViewModel.userData.value
     var email by rememberSaveable(userData) { mutableStateOf(userData?.email ?: "") }
     var displayName by rememberSaveable(userData) { mutableStateOf(userData?.displayName ?: "") }
-
-    LaunchedEffect(Unit) { authViewModel.refreshProfile() }
 
     Scaffold(
         topBar = {
