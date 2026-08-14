@@ -85,6 +85,15 @@ dependencies {
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
 
+    // Networking (backend integration)
+    implementation(libs.retrofit.core)
+    implementation(libs.retrofit.converter.moshi)
+    implementation(libs.okhttp.core)
+    implementation(libs.okhttp.logging.interceptor)
+    implementation(libs.moshi.kotlin)
+    implementation(libs.moshi.adapters)
+    implementation(libs.androidx.security.crypto)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
